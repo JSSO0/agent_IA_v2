@@ -1,0 +1,105 @@
+## 📂 indexer.py - Design e Implementação
+📋 Responsabilidades do indexer.py:
+Ler e extrair conteúdo do PDF: Utilizar bibliotecas como PyPDF2 ou pypdf para ler o texto.
+Gerar índice a partir do conteúdo: Utilizar llama-index (ou similar) para criar um índice dos conteúdos para facilitar buscas rápidas.
+Salvar o índice gerado: Manter um objeto persistente para que a leitura do PDF não seja necessária a cada execução.
+🔧 Dependências Requeridas:
+pypdf: Para ler o conteúdo do PDF.
+llama-index: Para criar e gerenciar o índice do conteúdo.
+bash
+Copiar código
+# Instalar dependências no ambiente
+!pip install llama-index pypdf
+
+🔍 Explicação do Código:
+__init__(self, pdf_path): Inicializa a classe com o caminho para o arquivo PDF.
+read_pdf(self): Lê o conteúdo do PDF usando PyPDF e retorna como uma lista de strings, uma para cada página.
+create_index(self, documents): Cria um índice a partir do conteúdo lido usando VectorStoreIndex do llama_index.
+save_index(self, index_path): Salva o índice gerado em um arquivo JSON.
+load_index(self, index_path): Carrega um índice salvo anteriormente.
+query_index(self, query_text): Consulta o índice com uma pergunta e retorna a resposta.
+
+
+##📂 chatbot.py – Implementação
+Esse módulo será responsável por:
+
+Inicializar o indexador (indexer.py) e carregar o índice do PDF.
+Receber perguntas do usuário.
+Realizar a consulta no índice gerado.
+Retornar as respostas baseadas no conteúdo do PDF.
+📋 Funções do chatbot.py:
+initialize_indexer(pdf_path, index_path): Inicializa o indexador e carrega o índice a partir de um arquivo PDF e/ou de um índice salvo.
+get_response(question): Recebe uma pergunta, consulta o índice e retorna a resposta.
+
+🔧 Explicação do chatbot.py:
+__init__(): Inicializa o Chatbot com um caminho para o PDF e/ou para um índice salvo.
+initialize_indexer(): Configura o indexador:
+Primeiro, tenta carregar o índice salvo no index_path.
+Se o índice não existir e um PDF estiver disponível (pdf_path), cria um novo índice a partir do PDF.
+get_response(question): Recebe uma pergunta do usuário e faz uma consulta ao índice para retornar a resposta.
+
+##📂 api.py – Implementação
+🔍 Explicação do Código:
+Inicialização do Flask e Chatbot:
+
+O Flask é inicializado com o nome app.
+O Chatbot é configurado e inicializado com o PDF e o índice. Isso garante que ele estará pronto para responder perguntas.
+Definição do Endpoint /ask:
+
+O endpoint /ask recebe requisições POST com uma pergunta no corpo da requisição.
+A pergunta é extraída do JSON enviado (request.json.get("question")).
+O Chatbot processa a pergunta usando get_response() e a resposta é enviada de volta como JSON (jsonify({"response": response})).
+Tratamento de Erros:
+
+Retorna um erro 400 se a pergunta não for fornecida.
+Retorna um erro 500 se algo der errado durante o processamento.
+
+# Estrutura do index_generator.py
+Funções e Responsabilidades:
+
+Leitura e Extração: Extrair texto do PDF.
+Criação do Índice: Utilizar llama-index para criar um índice que facilite buscas rápidas e precisas.
+Salvamento e Carregamento do Índice: Persistir o índice em disco e carregá-lo conforme necessário.
+Classe Principal (IndexGenerator):
+
+Métodos:
+read_pdf: Ler o conteúdo do PDF.
+create_index: Gerar o índice a partir dos textos lidos.
+save_index: Salvar o índice gerado em disco.
+load_index: Carregar um índice salvo.
+query_index: Fazer perguntas ao índice gerado e retornar a resposta.
+
+# 🔍 Explicação do index_generator.py:
+__init__(self, pdf_path): Inicializa o IndexGenerator com o caminho do PDF a ser processado.
+read_pdf(self): Lê o PDF e retorna uma lista de strings, onde cada string corresponde a uma página.
+create_index(self, documents): Cria um índice a partir da lista de documentos (texto extraído do PDF).
+save_index(self, index_path): Salva o índice gerado em disco no formato JSON.
+load_index(self, index_path): Carrega um índice salvo em disco.
+query_index(self, query_text): Realiza consultas ao índice e retorna respostas baseadas no conteúdo.
+
+# 📂 Estrutura do pdf_reader.py
+Funções e Responsabilidades:
+
+Ler o PDF: Ler um arquivo PDF e extrair seu conteúdo como texto.
+Gerar um Documento de Texto: Retornar o conteúdo extraído como uma lista de strings, onde cada string corresponde ao texto de uma página.
+Classe Principal (PDFReader):
+
+Métodos:
+__init__(self, pdf_path): Inicializa a classe com o caminho para o arquivo PDF.
+read_pdf(self): Lê o conteúdo do PDF e retorna uma lista de strings.
+Integração com index_generator.py e chatbot.py:
+
+index_generator.py pode utilizar PDFReader para ler e extrair o conteúdo do PDF antes de gerar o índice.
+chatbot.py pode usar PDFReader para acessar informações adicionais do PDF, se necessário.
+
+#🔍 Explicação do pdf_reader.py:
+__init__(self, pdf_path):
+
+Inicializa o leitor de PDF com o caminho fornecido.
+Verifica se o arquivo existe no caminho fornecido e lança um FileNotFoundError se não for encontrado.
+read_pdf(self):
+
+Lê o arquivo PDF utilizando pypdf (anteriormente PyPDF2).
+Extrai o texto de cada página e adiciona a uma lista content.
+Se não for possível extrair o texto de uma página, emite um aviso.
+Retorna uma lista onde cada item corresponde ao texto de uma página do PDF.
