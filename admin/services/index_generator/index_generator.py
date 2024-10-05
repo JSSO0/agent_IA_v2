@@ -1,17 +1,29 @@
 # index_generator.py
-from pdf_reader import PDFReader 
-from llama_index import VectorStoreIndex
+import pickle
+from admin.services.pdf_reader.pdf_reader import PDFReader 
+from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Document
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+# Acessar a chave de API do OpenAI
+openai_api_key = os.getenv("OPENAI_API_KEY")
+
 class IndexGenerator:
-    def __init__(self, pdf_path=None):
+    def __init__(self, pdf_path=None, index_path=None):
         self.pdf_path = pdf_path
         self.index = None
+
     def read_pdf(self):
+        """Lê o PDF utilizando a classe PDFReader, seja de um caminho local ou URL."""
+        print(f"📄 Caminho do PDF recebido: {self.pdf_path}")
         if not self.pdf_path:
             raise ValueError("Caminho do PDF não fornecido para o IndexGenerator.")
         reader = PDFReader(self.pdf_path)
         return reader.read_pdf()
     def create_index(self, documents):
-        document_list = [ {"text": doc} for doc in documents ]
+        document_list = [Document(text=doc) for doc in documents]
         self.index = VectorStoreIndex.from_documents(document_list)
         print(f"✅ Índice criado com sucesso para o documento fornecido.")
         return self.index

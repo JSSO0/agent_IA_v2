@@ -1,6 +1,7 @@
 # chatbot.py
-import services.index_generator
-from services.index_generator import IndexGenerator
+from admin.services.index_generator.index_generator import IndexGenerator
+
+
 class Chatbot:
     def __init__(self, pdf_path=None, index_path="index.json"):
         self.index_generator = IndexGenerator(pdf_path=pdf_path)

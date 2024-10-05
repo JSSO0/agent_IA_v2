@@ -11,7 +11,7 @@ PDF_PATH = "./DocumentodeExemploParaTestes.pdf"
 INDEX_PATH = "./meu_indice.json"
 chatbot = Chatbot(pdf_path=PDF_PATH, index_path=INDEX_PATH)
 
-@app.route('/ask', methods=['POST'])
+@app.route('/ask-to-chatbot', methods=['POST'])
 def ask_question():
     try:
         question = request.json.get("question")

@@ -1,7 +1,7 @@
 # tests/test_chatbot.py
 
 import unittest
-from backend.chatbot import Chatbot
+from admin.services.agentIA.chatbot import Chatbot
 
 class TestChatbot(unittest.TestCase):
     def setUp(self):
