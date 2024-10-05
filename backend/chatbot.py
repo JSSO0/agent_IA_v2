@@ -2,13 +2,13 @@
 import services.index_generator
 from services.index_generator import IndexGenerator
 class Chatbot:
-    def __init__(self, pdf_path=None, index_path="index.json"):
-        self.index_generator = IndexGenerator(pdf_path=pdf_path)
+    def __init__(self, pdf_path="./DocumentodeExemploParaTestes.pdf", index_path="./index.json"):
+        self.index_generator = IndexGenerator( index_path=index_path)
         self.index_path = index_path
         self.initialize_indexer()
     def initialize_indexer(self):
         try:
-            self.index_generator.load_index(self.index_path)
+            self.index_generator.load_index()
             print(f"✅ Índice carregado com sucesso de '{self.index_path}'")
         except FileNotFoundError:
             print(f"⚠️ Índice não encontrado em '{self.index_path}', criando um novo...")
