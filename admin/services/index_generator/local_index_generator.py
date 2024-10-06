@@ -1,47 +1,62 @@
+from sentence_transformers import SentenceTransformer
+import json
+from admin.repository.index_database_manager import IndexDatabaseManager
 import os
 import pickle
-from sentence_transformers import SentenceTransformer
+from datetime import datetime
 from sklearn.neighbors import NearestNeighbors
 
 
 class LocalIndexGenerator:
-    def __init__(self, index_path="index.pkl"):
-        # Inicializar o modelo de embeddings local e definir o caminho padrão para salvar o índice
-        self.model = SentenceTransformer('all-MiniLM-L6-v2')  # Usando um modelo leve e rápido
-        self.documents = []  # Lista para armazenar os documentos
-        self.embeddings = None  # Armazenar os embeddings dos documentos
-        self.nn_model = None  # Modelo de vizinhos mais próximos para busca
-        self.index_path = index_path  # Caminho padrão para salvar o índice
+    def __init__(self, index_dir="indices", index_path="index.pkl", client_id = None):
 
-    def create_index(self, documents, index_path=None):
-        """
-        Cria um índice de similaridade a partir de uma lista de documentos e salva em um arquivo.
-        """
+        self.index_dir = index_dir  # Diretório para salvar arquivos .pkl
+        os.makedirs(index_dir, exist_ok=True)  # Criar diretório, se não existir
+        self.model = SentenceTransformer('all-MiniLM-L6-v2')
+        self.documents = []
+        self.embeddings = None
+        self.nn_model = None
+        self.index_path = index_path
+        self.client_id = client_id
+        self.db_manager = IndexDatabaseManager()
+
+    def create_index(self, documents, index_name="default_index"):
         if not documents or not isinstance(documents, list):
             raise ValueError("Uma lista válida de documentos deve ser fornecida para criar o índice.")
-
-        # Armazenar os documentos
         self.documents = documents
-
-        # Gerar embeddings para cada documento usando o modelo local
-        print(f"📄 Gerando embeddings para {len(documents)} documentos...")
         self.embeddings = self.model.encode(documents, show_progress_bar=True)
-
-        # Criar um índice de busca utilizando NearestNeighbors
         self.nn_model = NearestNeighbors(n_neighbors=5, metric='cosine').fit(self.embeddings)
-        print(f"✅ Índice criado com sucesso para os documentos fornecidos.")
+        #self.save_index_to_db(index_name)
+        file_name = f"{index_name}.pkl"  # Nome do arquivo
+        file_path = os.path.join(self.index_dir, file_name)
+        with open(file_path, 'wb') as f:
+            pickle.dump({
+                "documents": self.documents,
+                "embeddings": self.embeddings,
+                "nn_model": self.nn_model
+            }, f)
+        print(f"✅ Índice salvo localmente no arquivo '{file_path}'.")
+        print(self.client_id)
+        self.db_manager.save_index_metadata(
+            client_id=self.client_id,
+            index_name=index_name,
+            file_name=file_name
+        )
 
-        # Definir o caminho para salvar o índice, usando o valor fornecido ou o caminho padrão
-        if index_path:
-            self.index_path = index_path
-        else:
-            index_path = self.index_path
+    def save_index_to_db(self, index_name):
+        print(f"✅ Salvando o index no Database")
+        index_data = {
+            "documents": self.documents,
+            "embeddings": self.embeddings.tolist(),  # Converter o array NumPy para listas
+            "metadata": {
+                "client_id": self.client_id,
+                "index_name": index_name,
+                "created_at": datetime.now().isoformat()
+            }
+        }
+        index_json = json.dumps(index_data)
+        self.db_manager.save_index_to_db(index_name, index_json)
 
-        # Salvar o índice no arquivo index.pkl ou no caminho fornecido
-        self.save_index(index_path)
-        print(f"✅ Índice salvo automaticamente em '{index_path}'.")
-
-        return self.nn_model
 
     def query_index(self, query_text):
         """Realiza uma consulta ao índice para encontrar documentos similares."""
