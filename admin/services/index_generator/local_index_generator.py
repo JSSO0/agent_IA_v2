@@ -55,7 +55,7 @@ class LocalIndexGenerator:
             }
         }
         index_json = json.dumps(index_data)
-        self.db_manager.save_index_to_db(index_name, index_json)
+        self.db_manager.save_index_metadata(index_name, index_json)
 
 
     def query_index(self, query_text):
