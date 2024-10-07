@@ -1,15 +1,18 @@
 from operator import index
 
 from flask import Flask, request, jsonify
+from yaml.reader import Reader
 
 from admin.repository.index_database_manager import IndexDatabaseManager
 from admin.services.index_generator.index_generator import IndexGenerator
 from admin.services.index_generator.local_index_generator import LocalIndexGenerator
+from admin.services.pdf_reader.pdf_reader import PdfReader
 
 app = Flask(__name__)
 index_generator = IndexGenerator()
 local_index_generator = LocalIndexGenerator()
 index_database_manager = IndexDatabaseManager()
+
 
 @app.route('/read-pdf', methods=['POST'])
 def read_pdf():
@@ -37,10 +40,12 @@ def local_create_index():
         return jsonify({"status": "error", "message": "Link do PDF não fornecido."}), 400
     try:
         index_generator.pdf_path = pdf_link
-        pdf_content = index_generator.read_pdf()
+        reader = PdfReader(pdf_link)
+        #pdf_content = index_generator.read_pdf()
+        pdf_content = reader.read_pdf()
         local_index_generator.client_id = client_id
-        index = local_index_generator.create_index(pdf_content)
-        #database_repository = local_index_generator.save_index_to_db(index)
+        index_name = reader.file_name
+        index = local_index_generator.create_index(pdf_content, index_name=index_name)        #database_repository = local_index_generator.save_index_to_db(index)
         return jsonify({"status": "success", "message": "Índice criado com sucesso."}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500

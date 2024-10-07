@@ -1,6 +1,6 @@
 # index_generator.py
 import pickle
-from admin.services.pdf_reader.pdf_reader import PDFReader 
+from admin.services.pdf_reader.pdf_reader import PdfReader
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Document
 from dotenv import load_dotenv
 import os
@@ -20,7 +20,7 @@ class IndexGenerator:
 
         if not self.pdf_path:
             raise ValueError("Caminho do PDF não fornecido para o IndexGenerator.")
-        reader = PDFReader(self.pdf_path)
+        reader = PdfReader(self.pdf_path)
         return reader.read_pdf()
 
 

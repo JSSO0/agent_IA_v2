@@ -3,34 +3,34 @@ from pypdf import PdfReader
 import os
 import requests
 import tempfile
+from urllib.parse import urlparse
 
-class PDFReader:
+class PdfReader:
     def __init__(self, pdf_path):
         self.pdf_path = None
-
-        # Verificar se pdf_path é uma URL
+        self.file_name = None
         if pdf_path.startswith("http://") or pdf_path.startswith("https://"):
             print(f"🔗 PDF fornecido como URL: {pdf_path}")
-            # Baixar o arquivo PDF e armazená-lo temporariamente
+            self.file_name = os.path.basename(urlparse(pdf_path).path)
             response = requests.get(pdf_path)
             if response.status_code == 200:
-                temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
-                temp_file.write(response.content)
-                temp_file.close()
-                self.pdf_path = temp_file.name
+                temp_dir = tempfile.gettempdir()
+                temp_file_path = os.path.join(temp_dir, self.file_name)
+                with open(temp_file_path, 'wb') as temp_file:
+                    temp_file.write(response.content)
+                self.pdf_path = temp_file_path
                 print(f"✅ PDF baixado com sucesso e salvo como '{self.pdf_path}'")
             else:
                 raise ValueError(f"Erro ao baixar o PDF da URL: {pdf_path}")
         else:
-            # Caminho local
             if not os.path.exists(pdf_path):
                 raise FileNotFoundError(f"Arquivo PDF não encontrado: {pdf_path}")
             self.pdf_path = pdf_path
+            self.file_name = os.path.basename(self.pdf_path)
+        print(f"📂 Nome do arquivo PDF extraído: '{self.file_name}'")
 
     def read_pdf(self):
         content = []
-
-        # Abrir e ler o PDF
         with open(self.pdf_path, 'rb') as file:
             reader = PdfReader(file)
             for page_num, page in enumerate(reader.pages):
@@ -39,7 +39,6 @@ class PDFReader:
                     content.append(text)
                 else:
                     print(f"⚠️ Aviso: Não foi possível extrair texto da página {page_num + 1}")
-
         print(f"✅ PDF '{self.pdf_path}' lido com sucesso. Total de páginas: {len(content)}")
         return content
 
