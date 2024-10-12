@@ -56,12 +56,54 @@ class LocalIndexGenerator:
 
 
     def query_index(self, query_text):
-        if not self.nn_model or not self.embeddings.any():
+        """
+        Consulta o índice usando o modelo de vizinhos mais próximos e gera uma resposta estruturada com base nos documentos encontrados.
+        """
+        if not self.nn_model or self.embeddings is None or not len(self.embeddings):
             raise ValueError("O índice não está disponível. Crie o índice primeiro.")
+        
+        # Gerar o embedding da pergunta
         query_embedding = self.model.encode([query_text])
+        
+        # Encontrar os documentos mais próximos
         distances, indices = self.nn_model.kneighbors(query_embedding)
+
+        # Coletar os documentos semelhantes
         similar_documents = [self.documents[idx] for idx in indices[0]]
-        return similar_documents
+
+        # Construir uma resposta com base nos documentos encontrados
+        resposta = self.gerar_resposta_estruturada(similar_documents, query_text)
+        
+        return resposta
+    def gerar_resposta_estruturada(self, documentos_relevantes, pergunta):
+        """
+        Gera uma resposta estruturada com base no conteúdo dos documentos relevantes.
+        Aqui usamos o modelo all-MiniLM-L6-v2 para encontrar as frases mais relevantes.
+        """
+        resposta = ""
+
+        # Quebrar os documentos relevantes em frases ou sentenças
+        todas_as_frases = []
+        for doc in documentos_relevantes:
+            frases = doc.split(". ")  # Separar por frases (simplesmente usando pontos finais)
+            todas_as_frases.extend(frases)
+
+        # Gerar embeddings para todas as frases
+        frases_embeddings = self.model.encode(todas_as_frases)
+
+        # Gerar o embedding da pergunta
+        pergunta_embedding = self.model.encode([pergunta])
+
+        # Calcular a similaridade entre a pergunta e cada frase
+        similaridades = np.inner(pergunta_embedding, frases_embeddings)[0]
+
+        # Ordenar as frases pela similaridade (da maior para a menor)
+        frases_ordenadas = [frase for _, frase in sorted(zip(similaridades, todas_as_frases), reverse=True)]
+
+        # Pegar as frases mais relevantes para montar a resposta
+        resposta = " ".join(frases_ordenadas[:3])  # Pegamos as 3 frases mais relevantes
+
+        return f"Resposta baseada nas informações mais relevantes: {resposta.strip()}"
 
     def save_index(self, index_path="index.pkl"):
         if not self.nn_model or not self.embeddings.any():

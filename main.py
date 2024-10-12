@@ -1,4 +1,5 @@
-from admin.controller.adminRoutes import app 
+#from admin.controller.adminRoutes import app 
+from chatbot.controller.chatbotRoutes import app
 
 def main():
     print("Inicializando a API Flask...")
