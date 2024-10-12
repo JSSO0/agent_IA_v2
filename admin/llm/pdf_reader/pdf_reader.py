@@ -33,15 +33,20 @@ class CustomPDFReader:
             raise ValueError("pdf_path must be a string or a file object")
 
     def read_pdf(self):
-        content = []
-        with open(self.pdf_path, 'rb') as file:
-            reader = PdfReader(file)
-            for page_num, page in enumerate(reader.pages):
-                text = page.extract_text()
-                if text:
-                    content.append(text)
-                else:
-                    print(f"⚠️ Aviso: Não foi possível extrair texto da página {page_num + 1}")
-        print(f"✅ PDF '{self.pdf_path}' lido com sucesso. Total de páginas: {len(content)}")
-        return content
+        try:
+            content = []
+            with open(self.pdf_path, 'rb') as file:
+                reader = PdfReader(file)
+                for page_num, page in enumerate(reader.pages):
+                    text = page.extract_text()
+                    if text:
+                        content.append(text)
+                    else:
+                        print(f"⚠️ Aviso: Não foi possível extrair texto da página {page_num + 1}")
+            print(f"✅ PDF '{self.pdf_path}' lido com sucesso. Total de páginas: {len(content)}")
+            return content
+        except FileNotFoundError:
+            print(f"Erro: Arquivo PDF '{self.pdf_path}' não encontrado.")
+        except Exception as e:
+            print(f"Erro: Ocorreu um erro ao ler o PDF '{self.pdf_path}'. {str(e)}")
 

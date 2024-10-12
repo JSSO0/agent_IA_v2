@@ -1,9 +1,10 @@
 # index_generator.py
 import pickle
-from admin.services.pdf_reader.pdf_reader import PdfReader
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Document
 from dotenv import load_dotenv
 import os
+
+from pypdf import PdfReader
 
 load_dotenv()
 

@@ -4,9 +4,10 @@ from flask import Flask, request, jsonify
 from yaml.reader import Reader
 
 from admin.repository.index_database_manager import IndexDatabaseManager
-from admin.services.index_generator.index_generator import IndexGenerator
-from admin.services.index_generator.local_index_generator import LocalIndexGenerator
-from admin.services.pdf_reader.pdf_reader import CustomPDFReader, PdfReader
+from admin.llm.index_generator.index_generator import IndexGenerator
+from admin.llm.index_generator.local_index_generator import LocalIndexGenerator
+from admin.llm.pdf_reader.pdf_reader import CustomPDFReader, PdfReader
+from admin.services.adminServices import adminServices
 
 app = Flask(__name__)
 index_generator = IndexGenerator()
@@ -32,45 +33,21 @@ def status():
 
 @app.route('/local-create-index', methods=['POST'])
 def local_create_index():
+    admin_services = adminServices()
     data = request.json
-    pdf_link = data.get("pdf_link")
-    client_id=data.get("client_id")
+    result, status_code = admin_services.local_create_index_services(data)
+    return jsonify(result), status_code
 
-    if not pdf_link:
-        return jsonify({"status": "error", "message": "Link do PDF não fornecido."}), 400
-    try:
-        reader = CustomPDFReader(pdf_link)  # Passar o link para o `CustomPDFReader`
-        pdf_content = reader.read_pdf()  # Ler o PDF e obter o conteúdo
-
-        # Definir o client_id e o index_name com base no nome do arquivo PDF extraído
-        local_index_generator.client_id = client_id
-        index_name = reader.file_name  # Usar o nome do arquivo extraído como `index_name`
-
-        # Criar o índice usando o conteúdo do PDF e o `index_name` derivado
-        index = local_index_generator.create_index(pdf_content, index_name=index_name, client_id=client_id)
- #database_repository = local_index_generator.save_index_to_db(index)
-        return jsonify({"status": "success", "message": "Índice criado com sucesso."}), 200
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/create-index', methods=['POST'])
 def create_index():
-    """Endpoint para criar um índice a partir de um PDF fornecido por link."""
     data = request.json
     pdf_link = data.get("pdf_path")
-
-    # Validar se o link do PDF foi fornecido corretamente
     if not pdf_link:
         return jsonify({"status": "error", "message": "Link do PDF não fornecido."}), 400
-
     try:
-        # Atribuir o link do PDF ao IndexGenerator
         index_generator.pdf_path = pdf_link
-
-        # Ler o conteúdo do PDF a partir do link
         pdf_content = index_generator.read_pdf()
-
-        # Criar índice a partir do conteúdo lido do PDF
         index = index_generator.create_index(pdf_content)
         return jsonify({"status": "success", "message": "Índice criado com sucesso."}), 200
     except Exception as e:
@@ -80,7 +57,6 @@ def create_index():
 def query_index():
     data = request.json
     query_text = data.get("query_text")
-
     try:
         response = local_index_generator.query_index(query_text)
         return jsonify({"status": "success", "response": response}), 200
@@ -91,7 +67,6 @@ def query_index():
 def load_index():
     data = request.json
     index_path = data.get("index_path")
-
     try:
         index_generator.index_path = index_path
         index_generator.load_index(index_path)
@@ -103,7 +78,6 @@ def load_index():
 def save_index():
     data = request.json
     index_path = data.get("index_path")
-
     try:
         index_generator.index_path = index_path
         index_generator.save_index()

@@ -1,5 +1,5 @@
 # chatbot.py
-from admin.services.index_generator.index_generator import IndexGenerator
+from admin.llm.index_generator.index_generator import IndexGenerator
 
 
 class Chatbot:

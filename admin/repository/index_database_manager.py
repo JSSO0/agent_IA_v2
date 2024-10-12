@@ -13,13 +13,10 @@ class IndexDatabaseManager:
         try:
             conn = create_db_connection()
             cursor = conn.cursor()
-
             query = sql.SQL("INSERT INTO index_metadata (client_id, index_name, file_name, created_at, updated_at) "
                             "VALUES (%s, %s, %s, %s, %s)")
-
             cursor.execute(query, (client_id, index_name, file_name, datetime.now(), datetime.now()))
             conn.commit()
-
             print(f"✅ Metadados do índice '{index_name}' salvos com sucesso no banco de dados.")
         except Exception as e:
             print(f"Erro ao salvar os metadados do índice '{index_name}': {e}")
