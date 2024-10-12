@@ -8,41 +8,59 @@ from sklearn.neighbors import NearestNeighbors
 
 
 class LocalIndexGenerator:
-    def __init__(self, index_dir="indices", index_path="index.pkl", client_id = None):
+    def __init__(self, base_index_dir="indices", model_name='all-MiniLM-L6-v2', client_id=None):
+        # Inicializar o modelo de embeddings
+        self.model = SentenceTransformer(model_name)
+        self.base_index_dir = base_index_dir  # Diretório base para salvar os índices
+        self.client_id = client_id  # ID do cliente associado ao índice
+        self.documents = []  # Lista para armazenar os documentos
+        self.embeddings = None  # Armazenar os embeddings dos documentos
+        self.nn_model = None  # Modelo de vizinhos mais próximos para busca
+        self.db_manager = IndexDatabaseManager()  # Instância do gerenciador de banco de dados
 
-        self.index_dir = index_dir  # Diretório para salvar arquivos .pkl
-        os.makedirs(index_dir, exist_ok=True)  # Criar diretório, se não existir
-        self.model = SentenceTransformer('all-MiniLM-L6-v2')
-        self.documents = []
-        self.embeddings = None
-        self.nn_model = None
-        self.index_path = index_path
-        self.client_id = client_id
-        self.db_manager = IndexDatabaseManager()
-
-    def create_index(self, documents, index_name="default_index"):
+    def create_index(self, documents, index_name="default_index", client_id=None):
+        """Cria o índice a partir de uma lista de documentos e salva localmente como arquivo .pkl."""
         if not documents or not isinstance(documents, list):
             raise ValueError("Uma lista válida de documentos deve ser fornecida para criar o índice.")
+
+        # Garantir que o client_id esteja definido
+        self.client_id = client_id or self.client_id
+        if not self.client_id:
+            raise ValueError("client_id é obrigatório para salvar o índice.")
+
+        # Armazenar os documentos e gerar embeddings
         self.documents = documents
+        print(f"📄 Gerando embeddings para {len(documents)} documentos...")
         self.embeddings = self.model.encode(documents, show_progress_bar=True)
+
+        # Criar o índice de vizinhos mais próximos
         self.nn_model = NearestNeighbors(n_neighbors=5, metric='cosine').fit(self.embeddings)
-        #self.save_index_to_db(index_name)
-        file_name = f"{index_name}.pkl"  # Nome do arquivo
-        file_path = os.path.join(self.index_dir, file_name)
+        print(f"✅ Índice criado com sucesso para os documentos fornecidos.")
+
+        # Criar a pasta com o client_id como nome, se ainda não existir
+        client_dir = os.path.join(self.base_index_dir, str(self.client_id))
+        os.makedirs(client_dir, exist_ok=True)  # Criar a pasta, se não existir
+
+        # Salvar o arquivo .pkl com o nome do PDF (index_name) na pasta do cliente
+        file_name = f"{index_name}.pkl"
+        file_path = os.path.join(client_dir, file_name)  # Usar client_dir para salvar o arquivo
+
         with open(file_path, 'wb') as f:
             pickle.dump({
                 "documents": self.documents,
                 "embeddings": self.embeddings,
                 "nn_model": self.nn_model
             }, f)
+
         print(f"✅ Índice salvo localmente no arquivo '{file_path}'.")
-        print(self.client_id)
+
+        # Salvar metadados no banco de dados
         self.db_manager.save_index_metadata(
             client_id=self.client_id,
             index_name=index_name,
             file_name=file_name
         )
-
+        
     def save_index_to_db(self, index_name):
         print(f"✅ Salvando o index no Database")
         index_data = {

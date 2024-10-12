@@ -6,7 +6,7 @@ from yaml.reader import Reader
 from admin.repository.index_database_manager import IndexDatabaseManager
 from admin.services.index_generator.index_generator import IndexGenerator
 from admin.services.index_generator.local_index_generator import LocalIndexGenerator
-from admin.services.pdf_reader.pdf_reader import PdfReader
+from admin.services.pdf_reader.pdf_reader import CustomPDFReader, PdfReader
 
 app = Flask(__name__)
 index_generator = IndexGenerator()
@@ -39,13 +39,16 @@ def local_create_index():
     if not pdf_link:
         return jsonify({"status": "error", "message": "Link do PDF não fornecido."}), 400
     try:
-        index_generator.pdf_path = pdf_link
-        reader = PdfReader(pdf_link)
-        #pdf_content = index_generator.read_pdf()
-        pdf_content = reader.read_pdf()
+        reader = CustomPDFReader(pdf_link)  # Passar o link para o `CustomPDFReader`
+        pdf_content = reader.read_pdf()  # Ler o PDF e obter o conteúdo
+
+        # Definir o client_id e o index_name com base no nome do arquivo PDF extraído
         local_index_generator.client_id = client_id
-        index_name = reader.file_name
-        index = local_index_generator.create_index(pdf_content, index_name=index_name)        #database_repository = local_index_generator.save_index_to_db(index)
+        index_name = reader.file_name  # Usar o nome do arquivo extraído como `index_name`
+
+        # Criar o índice usando o conteúdo do PDF e o `index_name` derivado
+        index = local_index_generator.create_index(pdf_content, index_name=index_name, client_id=client_id)
+ #database_repository = local_index_generator.save_index_to_db(index)
         return jsonify({"status": "success", "message": "Índice criado com sucesso."}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
