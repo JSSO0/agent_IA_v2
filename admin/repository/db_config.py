@@ -1,10 +1,13 @@
-# db_config.py
+import os
+from dotenv import load_dotenv
 import psycopg2
+
+load_dotenv()
 
 def create_db_connection():
     return psycopg2.connect(
-        host="localhost",
-        database="agent_avant",
-        user="postgres",
-        password="1234"
+        host=os.getenv("DB_HOST"),
+        database=os.getenv("DB_NAME"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD")
     )
