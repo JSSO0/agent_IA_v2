@@ -1,17 +1,17 @@
-##Repositório Nome: Agente Avant 
+## Repositório Nome: Agente Avant 
 
-##Descrição: Este repositório contém o código para um agente de IA conversacional que utiliza processamento de linguagem natural (NLP) e aprendizado de máquina (ML) para gerar respostas human-like para a entrada do usuário.
+## Descrição: Este repositório contém o código para um agente de IA conversacional que utiliza processamento de linguagem natural (NLP) e aprendizado de máquina (ML) para gerar respostas human-like para a entrada do usuário.
 
-##Conteúdo:
+## Conteúdo:
 
-##Começando
+## Começando
 Pré-requisitos
 Instalação
 Uso
 Contribuindo
 Licença
 
-##Começando
+## Começando
 1 - Para começar com este repositório, siga estes passos:
 2 - Clone o repositório usando git clone https://github.com/JSSO0/agent_IA_v2.git
 3 -Instale as dependências necessárias usando pip install -r requirements.txt
