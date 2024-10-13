@@ -1,4 +1,4 @@
-from admin.llm.index_generator.local_index_generator import LocalIndexGenerator
+from admin.llm.index_manager.local_index_manager import LocalIndexGenerator
 from admin.llm.pdf_reader.pdf_reader import CustomPDFReader
 
 class adminServices:

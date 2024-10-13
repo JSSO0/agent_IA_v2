@@ -1,7 +1,6 @@
 # chatbot.py
 from admin.llm.index_generator.index_generator import IndexGenerator
 
-
 class Chatbot:
     def __init__(self, pdf_path=None, index_path="index.json"):
         self.index_generator = IndexGenerator(pdf_path=pdf_path)

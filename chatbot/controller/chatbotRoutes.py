@@ -2,8 +2,9 @@
 
 import os
 import pickle
-from admin.llm.index_generator.local_index_generator import LocalIndexGenerator
 from flask import Flask, request, jsonify
+
+from admin.llm.index_manager.local_index_manager import LocalIndexGenerator
 
 app = Flask(__name__)
 
